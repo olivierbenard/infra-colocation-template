@@ -1,6 +1,7 @@
 # Pilot CF Colocation Infra - Cloud Infrastructure & Deployment Guide
 
 This pilot project illustrates a modern, simple, predictable and scalable approach for building and deploying cloud services in your organisation using Terragrunt on top of Terraform.  
+  
 It is intentionally written to be fully understandable by **non-technical stakeholders** while remaining highly practical and detailed for **engineers**.  
 
 ## What This Template Does
@@ -10,9 +11,9 @@ This project shows how to reliably deploy cloud resources—such as Cloud Functi
 - **Terragrunt** (to simplify, structure, and automate Terraform)
 - **YAML recipes** (human‑friendly configuration files)
 
-Infrastructure modules (the terraform parts) are maintained in a separate repository.  
-This repository exposes terraform **resources** (an _atomic unit_ of terraform which directly represents one real object in the cloud and not re-usable on its own) as reusable **modules** (a package of resources i.e. a reusable, parametrized template) and **wrappers** (composed modules tailored for specific patterns):
-* https://github.com/olivierbenard/gcp-terraform-modules
+Infrastructure modules (the terraform parts) are maintained in a separate repository (see [gcp-terraform-modules](https://github.com/olivierbenard/gcp-terraform-modules)).  
+  
+This separate repository exposes terraform **resources** (an _atomic unit_ of terraform which directly represents one real object in the cloud and not re-usable on its own) as reusable **modules** (a package of resources i.e. a reusable, parametrized template) and **wrappers** (composed modules tailored for specific patterns):
 
 The goal is to:
 * Minimize cognitive load for developers onboarding a new cloud service.
@@ -405,4 +406,7 @@ You now have:
 - A YAML-driven configuration model  
 - An extendable template  
 - Support for any Terraform module from the Organisation catalogue  
-  
+
+## Licence
+
+MIT
