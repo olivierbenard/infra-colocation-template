@@ -1,0 +1,19 @@
+.DS_Store*
+*cache*
+.env
+.venv/
+**/.terraform
+
+# Terraform/Terragrunt
+.terraform/
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terragrunt-generated
+infra/**/backend.tf
+infra/**/providers.tf
+infra/**/versions.tf

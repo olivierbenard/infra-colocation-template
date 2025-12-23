@@ -1,0 +1,49 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff-check
+        entry: make ruff-check
+        language: system
+        pass_filenames: false
+        stages: [pre-commit, manual]
+  - repo: local
+    hooks:
+      - id: tf-check
+        name: tf-check
+        entry: make tf-check
+        language: system
+        pass_filenames: false
+        stages: [pre-commit, manual]
+  - repo: local
+    hooks:
+      - id: tf-validate
+        name: tf-validate
+        entry: make tf-validate
+        language: system
+        pass_filenames: false
+        stages: [pre-commit, manual]
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: make mypy
+        language: system
+        pass_filenames: false
+        stages: [pre-push, manual]
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: make pylint
+        language: system
+        pass_filenames: false
+        stages: [pre-push, manual]
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: make tests
+        language: system
+        pass_filenames: false
+        stages: [pre-push, manual]

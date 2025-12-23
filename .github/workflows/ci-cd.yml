@@ -1,0 +1,135 @@
+name: CI + CD
+
+on:
+  push:
+    branches:
+      - 'dev/**'
+      - 'main'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  ci:
+    name: Lint, type-check, test & Terraform checks
+    runs-on: ubuntu-latest
+
+    env:
+      POETRY_VIRTUALENVS_CREATE: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pipx
+          pipx install poetry
+
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      - name: Install project dependencies with Poetry
+        run: |
+          poetry install --no-interaction --no-root
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.12.2"
+          terraform_wrapper: false
+
+      - name: Install Terragrunt
+        run: |
+          TG_VERSION="0.92.1"
+          curl -Ls "https://github.com/gruntwork-io/terragrunt/releases/download/v${TG_VERSION}/terragrunt_linux_amd64" -o terragrunt
+          sudo install terragrunt /usr/local/bin/terragrunt
+          terragrunt --version
+
+      - name: Run full checks (ruff, mypy, pylint, tests, tf-fmt/check/validate, clean)
+        run: |
+          make checks
+
+  deploy-dev:
+    name: Deploy to dev
+    needs: ci
+    # only deploy on push, not on PRs, and only for dev/* branches
+    if: github.event_name == 'push' && startsWith(github.ref_name, 'dev/')
+    runs-on: ubuntu-latest
+    env:
+      ENV: dev
+      FUNCTION: src
+      ZIP_NAME: pilot-cf-colocation-infra.zip
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY_DEV }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: project-${{ env.ENV }}
+
+      - name: Ensure zip & rsync are available
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zip rsync
+
+      - name: Build & upload Cloud Function artifact to dev
+        run: |
+          make upload ENV=${ENV} FUNCTION=${FUNCTION} ZIP_NAME=${ZIP_NAME}
+      
+      - name: Set up Terraform (for Terragrunt)
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.12.2"
+          terraform_wrapper: false
+
+      - name: Install Terragrunt
+        run: |
+          TG_VERSION="0.92.1"
+          curl -Ls "https://github.com/gruntwork-io/terragrunt/releases/download/v${TG_VERSION}/terragrunt_linux_amd64" -o terragrunt
+          sudo install terragrunt /usr/local/bin/terragrunt
+          terragrunt --version
+      
+      - name: Setup SSH for Terraform modules
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # Write deploy key from secret
+          echo "${TF_MODULES_DEPLOY_KEY}" > ~/.ssh/gcp-terraform-modules-ci
+          chmod 600 ~/.ssh/gcp-terraform-modules-ci
+
+          # Start ssh-agent and add key
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/gcp-terraform-modules-ci
+
+          # Add GitHub.com to known_hosts to avoid interactive prompt
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+        env:
+          TF_MODULES_DEPLOY_KEY: ${{ secrets.TF_MODULES_DEPLOY_KEY }}
+
+      - name: Test SSH authentication
+        run: ssh -T git@github.com || true
+      
+      - name: Plan infra with Terragrunt (dev)
+        run: | # replace with 'make infra-apply-dev-auto-approve'
+          make infra-plan-dev
+        env:
+          TF_MODULES_DEPLOY_KEY: ${{ secrets.TF_MODULES_DEPLOY_KEY }}

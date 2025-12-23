@@ -1,0 +1,17 @@
+defaults:
+  location: EU
+  storage_class: STANDARD
+  uniform_bucket_level_access: true
+
+  labels:
+    src: pilot-cf-colocation
+
+bucket:
+  name: pilot-colocation-dev
+  versioning: true
+
+  lifecycle_rules:
+    - action:
+        type: Delete
+      condition:
+        age: 365

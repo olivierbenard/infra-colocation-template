@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "pilot-cf-colocation-infra"
+version = "0.1.0"
+description = "Pilot to colocate GCP objects close to code/service that uses them."
+authors = ["Olivier Bénard"]
+license = "Proprietary"
+readme = "README.md"
+packages = [{include="src/"}]
+
+[tool.poetry.dependencies]
+python = "~3.12"
+flask = "^3.1.2"
+google-cloud = "^0.34.0"
+google-cloud-logging = "^3.12.1"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.14.2"
+pytest = "^8.4.2"
+functions-framework = "^3.9.2"
+pre-commit = "^4.5.0"
+pylint = "^4.0.4"
+mypy = "^1.19.0"
+python-dotenv = "^1.2.1"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

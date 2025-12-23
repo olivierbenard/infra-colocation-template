@@ -1,0 +1,57 @@
+defaults:
+  runtime: python312
+  entry_point: main
+  available_cpu: "0.3333"
+  memory: 512Mi
+  timeout_seconds: 60
+  ingress_settings: ALLOW_ALL
+  min_instances: 0
+  max_instances: 5
+
+  labels:
+    src: pilot-cf-colocation
+
+  environment_variables:
+    LOG_LEVEL: INFO
+
+  secret_env_vars: []   # list of {key, secret, project_id, version}
+
+  cf_service_account_roles:
+    - roles/logging.logWriter
+    - roles/secretmanager.secretAccessor # <TODO> you want to restrict it only to the ENV VARIABLES it needs
+
+  scheduler:
+    timezone: Europe/Berlin
+    headers:
+      Content-Type: application/json
+    attempt_deadline: 60s
+    # if rest is omitted, we’ll fall back to scheduler from root.hcl
+
+function:
+  name: pilot-colocation
+  description: "Pilot CF for colocation test"
+
+  storage_source:
+    bucket: cloud-functions-artifacts-dev
+    object: pilot-cf-colocation-infra.zip
+
+  # Optional: reuse existing SA instead of creating one
+  # service_account_email: some-sa@project-dev.iam.gserviceaccount.com
+
+  env_vars:
+    ENV: dev
+
+  secret_env_vars:
+    - key: SLACK_APP_TOKEN
+      secret: slack-data-analytics-app-token
+      project_id: project-dev
+      version: latest
+
+  # schedules:
+  #   - name: daily-at-840
+  #     cron: "40 8 * * *"
+  #     paused: false
+  #     timezone: Europe/Berlin
+  #     http_method: POST
+  #     payload:
+  #       env: dev
