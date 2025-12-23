@@ -1,4 +1,4 @@
-# Pilot CF Colocation Infra - Cloud Infrastructure & Deployment Guide
+# infra-colocation-template
 
 This pilot project illustrates a modern, simple, predictable and scalable approach for building and deploying cloud services in your organisation using Terragrunt on top of Terraform.  
   
